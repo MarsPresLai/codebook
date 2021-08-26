@@ -1,12 +1,12 @@
 struct BIT{
     vector<int> rt;
-    int size;
+    int sz;
     BIT(int n){
         rt.resize(n + 1);
-        size = n + 1;
+        sz = n + 1;
     }
 	void add(int i, int v){
-		for(; i < size; i += i & -i)
+		for(; i < sz; i += i & -i)
 			rt[i] += v;
 	}
 	int sum(int i){
