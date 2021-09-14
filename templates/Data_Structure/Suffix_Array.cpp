@@ -1,31 +1,55 @@
-string s;
-cin >> s;
-s += '$';
-int n = s.size(), idx[n]{}, val[n]{};
-vector<pair<char, int>> a;
-for(int i = 0; i < n; i++){
-    a.push_back({s[i], i});
-}
-sort(all(a));
-for(int i = 0; i < n; i++)idx[i] = a[i].second;
-val[idx[0]] = 0;
-for(int i = 1; i < n; i++){
-    val[idx[i]] = val[idx[i - 1]];
-    if(a[i].first != a[i - 1].first)val[idx[i]]++;
-}
-int k = 0;
-while((1 << k) < n){
-    vector<pair<pair<int, int>, int>> cal(n);
-    for(int i = 0; i < n; i++){
-        cal[i] = {{val[i], val[(i + (1 << k)) % n]}, i};
-    }
-    sort(all(cal));
-    for(int i = 0; i < n; i++)idx[i] = cal[i].second;
-    val[idx[0]] = 0;
+void count_sort(vector<int> &p, vector<int> &c){
+    int n = p.size();
+    vector<int> cnt(n), pos(n), new_p(n);
+    for(int i : c)cnt[i]++;
     for(int i = 1; i < n; i++){
-        val[idx[i]] = val[idx[i - 1]];
-        if(cal[i].first != cal[i - 1].first)val[idx[i]]++;
+        pos[i] = pos[i - 1] + cnt[i - 1];
     }
-    k++;
+    for(int i = 0; i < n; i++){
+        new_p[pos[c[p[i]]]++] = p[i];
+    }
+    p = new_p;
 }
-for(int i : idx)cout << i << ' ';
+
+signed main(){
+    string s;
+    cin >> s;
+    s += '$';
+    int n = s.size();
+    vector<int> p(n), c(n);
+    {
+        vector<int> cnt(128), pos(128);
+        for(char c : s)cnt[c]++;
+        pos[0] = 0;
+        for(int i = 1; i < 128; i++){
+            pos[i] = pos[i - 1] + cnt[i - 1];
+        }
+        for(int i = 0; i < n; i++){
+            p[pos[s[i]]++] = i;
+        }
+        c[p[0]] = 0;
+        for(int i = 1; i < n; i++){
+            c[p[i]] = c[p[i - 1]];
+            if(s[p[i]] != s[p[i - 1]])c[p[i]]++;
+        }
+    }
+    {
+        int k = 0;
+        while((1 << k) < n){
+            for(int i = 0; i < n; i++){
+                p[i] = (p[i] - (1 << k) + n) % n;
+            }
+            count_sort(p, c);
+            vector<int> new_c(n);
+            new_c[p[0]] = 0;
+            for(int i = 1; i < n; i++){
+                pair<int, int> now = {c[p[i]], c[(p[i] + (1 << k)) % n]}, pre = {c[p[i - 1]], c[(p[i - 1] + (1 << k)) % n]};
+                new_c[p[i]] = new_c[p[i - 1]];
+                if(now != pre)new_c[p[i]]++;
+            }
+            c = new_c;
+            k++;
+        }
+    }
+    for(int i : p)cout << i << ' ';
+}
