@@ -12,7 +12,7 @@ signed main(){
         cin >> x >> y;
         a[i] = {x, y};
     }
-    int ans = 0;
+    double ans = 0;
     a.push_back(a[0]);
     auto cross = [&](point x, point y){
         return (conj(x) * y).Y;
@@ -20,5 +20,5 @@ signed main(){
     for(int i = 0; i < n; i++){
         ans += cross(a[i], a[i + 1]);
     }
-    cout << abs(ans);
+    cout << abs(ans) / 2;
 }
