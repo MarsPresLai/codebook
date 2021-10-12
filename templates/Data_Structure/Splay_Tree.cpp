@@ -1,9 +1,11 @@
 struct node{
+    int val, sz;
     node *lc, *rc, *pa;
-    node(){lc = rc = pa = NULL;}
+    node(){val = sz = 0; lc = rc = pa = NULL;}
+    node(int i){val = i; sz = 1; lc = rc = pa = NULL;}
     bool isLeft(){return pa && pa -> lc == this;}
     bool isRight(){return pa && pa -> rc == this;}
-    node*& ch(bool b){return b ? rc : lc;}
+    node *&ch(bool b){return b ? lc : rc;}
     void rotate(bool b){
         node *x = ch(b);
         if(isLeft())pa -> lc = x;
@@ -13,6 +15,8 @@ struct node{
         if(x -> ch(!b))x -> ch(!b) -> pa = this;
         x -> ch(!b) = this;
         pa = x;
+        x -> sz = sz;
+        sz = get_sz(lc) + get_sz(rc) + 1;
     }
     void rotateTop(){pa -> rotate(isLeft());}
     void splay(node *top = NULL){
@@ -27,17 +31,20 @@ struct node{
     friend void merge(node *a, node *b){
         if(!a || !b)return;
         a -> splay();
-        a -> find_last() -> splay();
+        node *x = a -> find_last();
+        x -> splay();
         b -> splay();
-        a -> rc = b;
-        b -> pa = a;
+        x -> rc = b;
+        b -> pa = x;
+        x -> sz += b -> sz;
     }
     void insert(node *a){
         splay();
-        if(!lc)lc = a, a -> pa = this;
+        if(!lc)lc = a, a -> pa = this, sz++;
         else{
             lc -> find_last() -> splay(this);
             lc -> rc = a, a -> pa = lc;
+            sz++, lc -> sz++;
         }
     }
     void erase(){
@@ -46,5 +53,22 @@ struct node{
         if(rc)rc -> pa = NULL;
         merge(lc, rc);
         lc = rc = NULL;
+    }
+    int get_sz(node *&a){return a ? a -> sz : 0;}
+    node *kth(int k){
+        if(get_sz(lc) >= k)return lc -> kth(k);
+        if(k == get_sz(lc) + 1)return this;
+        return rc -> kth(k - get_sz(lc) - 1);
+    }
+    void insert(int k, int v){
+        splay();
+        kth(k) -> insert(new node(v));
+    }
+    void erase(int k){
+        kth(k) -> erase();
+    }
+    void print(int k){
+        splay();
+        cout << kth(k) -> val << '\n';
     }
 };
