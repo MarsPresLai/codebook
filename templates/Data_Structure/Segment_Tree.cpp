@@ -1,60 +1,42 @@
-vector<int> a;
-struct seg{
-    int l, r, m, val = 0, lazy = 0;
-    seg* child[2];
-    seg(int i, int j) : l(i), r(j), m(l + r >> 1){
-        if(r - l == 1){
-            val = a[l];
-        }else{
-            child[0] = new seg(l, m);
-            child[1] = new seg(m, r);
-            pull();
+#define lc (p << 1)
+#define rc (p << 1 | 1)
+template<class T> struct segtree{
+    struct node{
+        T val, lz;
+        node(){val = lz = 0;}
+        void push(T v){
+            val += v;
+            lz += v;
+        }
+    };
+    int sz;
+    vector<node> seg;
+    segtree(int n) : sz(n){seg.resize(4 * sz);}
+    void pull(int p){seg[p].val = min(seg[lc].val, seg[rc].val);}
+    void push(int p){
+        if(seg[p].lz){
+            seg[lc].push(seg[p].lz);
+            seg[rc].push(seg[p].lz);
+            seg[p].lz = 0;
         }
     }
-    int size(){
-        return r - l;
+    void add(int a, int b, T v, int p, int l, int r){
+        if(a <= l && b >= r)return void(seg[p].push(v));
+        push(p);
+        int m = l + r >> 1;
+        if(a < m)add(a, b, v, lc, l, m);
+        if(b > m)add(a, b, v, rc, m, r);
+        pull(p);
     }
-    void pull(){
-        val = child[0] -> val + child[1] -> val;
+    T query(int a, int b, int p, int l, int r){
+        if(a <= l && b >= r)return seg[p].val;
+        push(p);
+        int m = l + r >> 1;
+        T ans = INF;
+        if(a < m)ans = min(ans, query(a, b, lc, l, m));
+        if(b > m)ans = min(ans, query(a, b, rc, m, r));
+        return ans;
     }
-    void push(){
-        if(lazy && r - l != 1){
-            child[0] -> lazy += lazy;
-            child[1] -> lazy += lazy;
-            child[0] -> val += lazy * child[0] -> size();
-            child[1] -> val += lazy * child[1] -> size();
-        }
-        lazy = 0;
-    }
-    void set(int i, int v){
-        if(r - l == 1){
-            val = v;
-        }else{
-            if(i < m)child[0] -> set(i, v);
-            else child[1] -> set(i, v);
-            pull();
-        }
-    }
-    int query(int i, int j){
-        if(i <= l && j >= r){
-            return val;
-        }else{
-            int ans = 0;
-            push();
-            if(i < m)ans += child[0] -> query(i, j);
-            if(j > m)ans += child[1] -> query(i, j);
-            return ans;
-        }
-    }
-    void add(int a, int b, int v){
-        if(a <= l && b >= r){
-            lazy += v;
-            val += v * size();
-        }else{
-            push();
-            if(a < m)child[0] -> add(a, b, v);
-            if(b > m)child[1] -> add(a, b, v);
-            pull();
-        }
-    }
+    void add(int a, int b, T v){add(a, b, v, 1, 0, sz);}
+    T query(int a, int b){return query(a, b, 1, 0, sz);}
 };
