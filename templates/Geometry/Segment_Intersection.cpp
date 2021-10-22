@@ -30,3 +30,14 @@ double ptline(pt x, pt a, pt b){
     }
     return min(abs(x - a), abs(x - b));
 }
+const pt far = {1e5, 0};
+bool inpoly(pt x, vector<pt> &a){
+    int cnt = 0;
+    for(int i = 0; i + 1 < a.size(); i++){
+        if(intersect(x, far, a[i], a[i + 1])){
+            if(online(a[i], x, far) && turn(a[i + 1], x, far) <= 0 || online(a[i + 1], x, far) && turn(a[i], x, far) <= 0)continue;
+            cnt++;
+        }
+    }
+    return cnt & 1;
+}
