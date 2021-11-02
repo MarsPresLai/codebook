@@ -8,7 +8,7 @@ void dfs(int i = 0, int p = -1){
         dep[j] = dep[i] + 1;
         dfs(j, i);
         sz[i] += sz[j];
-        if(sz[j] > sz[adj[i][0]])swap(j, adj[i][0]);
+        if(adj[i][0] == p || sz[j] > sz[adj[i][0]])swap(j, adj[i][0]);
     }
 }
  
