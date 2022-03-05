@@ -1,20 +1,22 @@
-// splay
 struct node{
     node *lc, *rc, *pa;
-    int sz, rev;
-    node(){lc = rc = pa = NULL; sz = 1; rev = 0;}
-    bool L(){return pa && pa -> lc == this ? 1 : 0;}
-    bool R(){return pa && pa -> rc == this ? 1 : 0;}
+    int val, sum;
+    bool rev;
+    node(){lc = rc = pa = NULL; val = sum = rev = 0;}
+    bool L(){return pa && pa -> lc == this;}
+    bool R(){return pa && pa -> rc == this;}
     bool RT(){return !L() && !R();}
+    node *&ch(bool d){return d ? lc : rc;}
+    int gets(node *x){return x ? x -> sum : 0;}
+    void pull(){sum = gets(lc) + gets(rc) + val;}
     void push(){
         if(rev){
-            if(lc)lc -> rev ^= rev;
-            if(rc)rc -> rev ^= rev;
+            if(lc)lc -> rev ^= 1;
+            if(rc)rc -> rev ^= 1;
             swap(lc, rc);
             rev = 0;
         }
     }
-    node *&ch(bool d){return d ? lc : rc;}
     void rotate(bool d){
         node *x = ch(d);
         if(!RT())pa -> ch(L()) = x;
@@ -23,6 +25,8 @@ struct node{
         if(x -> ch(!d))x -> ch(!d) -> pa = this;
         x -> ch(!d) = this;
         pa = x;
+        pull();
+        x -> pull();
     }
     void rotateTop(){pa -> rotate(L());}
     void pushall(){if(!RT())pa -> pushall(); push();}
@@ -39,13 +43,14 @@ struct LCT{
     vector<node> rt;
     LCT(int n){rt.resize(n);}
     void access(int v){
-        node *now = &rt[v], *lst = NULL;
-        for(node *x = now; x; x = x -> pa){
-            x -> splay();
-            x -> rc = lst;
-            lst = x;
+        node *x = &rt[v], *lst = NULL;
+        for(node *now = x; now; now = now -> pa){
+            now -> splay();
+            now -> rc = lst;
+            now -> pull();
+            lst = now;
         }
-        now -> splay();
+        x -> splay();
     }
     void makert(int v){
         access(v);
@@ -54,17 +59,22 @@ struct LCT{
     void link(int u, int v){
         makert(u);
         rt[u].pa = &rt[v];
+        rt[v].pull();
     }
     void cut(int u, int v){
         makert(u);
         access(v);
-        if(rt[v].lc){
-            rt[v].lc = rt[v].lc -> pa = NULL;
-        }
+        if(rt[v].lc)rt[v].lc = rt[v].lc -> pa = NULL;
+        rt[v].pull();
     }
-    bool con(int u, int v){
-        access(u);
+    void add(int v, int i){
         access(v);
-        return rt[u].pa;
+        rt[v].val += i;
+        rt[v].pull();
+    }
+    int sum(int u, int v){
+        makert(u);
+        access(v);
+        return rt[v].sum;
     }
 };
