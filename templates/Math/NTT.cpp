@@ -1,4 +1,4 @@
-const MOD = 998244353;
+const int MOD = 998244353;
 
 int mypow(int a, int k){
     if(!a)return 0;
